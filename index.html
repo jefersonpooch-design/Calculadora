@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Evolução - Cartas Base - Plants on Fire</title>
+    <style>
+        :root {
+            --bg-color: #121214;
+            --card-bg: #1e1e22;
+            --border-color: #2e2e34;
+            --text-color: #e1e1e6;
+            --text-dim: #a8a8b3;
+            --accent-color: #00e676;
+            --gold-color: #ffd700;
+            --units-color: #ff5722;
+            --rarity-rara: #42a5f5;
+            --rarity-epica: #ab47bc;
+            --rarity-lendaria: #ffa726;
+            --tag-base: #424242;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            color: var(--accent-color);
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        /* Summary Total Bar */
+        .summary-bar {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background: rgba(30, 30, 34, 0.95);
+            backdrop-filter: blur(8px);
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .summary-item .icon {
+            font-size: 1.8rem;
+        }
+
+        .summary-item .details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .summary-item .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        .summary-item .value {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .val-gold { color: var(--gold-color); }
+        .val-units { color: var(--units-color); }
+        .val-rara { color: var(--rarity-rara); }
+        .val-epica { color: var(--rarity-epica); }
+        .val-lendaria { color: var(--rarity-lendaria); }
+
+        .units-breakdown {
+            display: flex;
+            gap: 10px;
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        .controls {
+            background: var(--card-bg);
+            padding: 18px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-box {
+            flex: 1 1 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: #16161a;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        select {
+            padding: 9px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: #16161a;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .btn-action {
+            background: #2a2a32;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: #44444e;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-id {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .card-title-box {
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .badges {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-type {
+            background: var(--tag-base);
+            color: #fff;
+        }
+
+        .badge-rarity {
+            border: 1px solid currentColor;
+            background: transparent;
+        }
+
+        .rarity-rara { color: var(--rarity-rara); }
+        .rarity-epica { color: var(--rarity-epica); }
+        .rarity-lendaria { color: var(--rarity-lendaria); }
+
+        .level-selectors {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #16161a;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .level-control-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .level-control-box label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            background: #232328;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .stepper button {
+            background: #2c2c34;
+            color: #fff;
+            border: none;
+            width: 28px;
+            height: 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+
+        .stepper button:hover {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .stepper button:active {
+            transform: scale(0.95);
+        }
+
+        .stepper span {
+            width: 32px;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .card-result {
+            display: flex;
+            justify-content: space-around;
+            padding: 8px;
+            background: #141417;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .res-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .res-label {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+
+        .res-value {
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Calculadora de Evolução de Cartas</h1>
+        <p>Plants on Fire — APENAS Cartas Base (65 Entradas)</p>
+    </header>
+
+    <div class="summary-bar">
+        <div class="summary-item">
+            <span class="icon">🪙</span>
+            <div class="details">
+                <span class="label">Ouro Total Necessário</span>
+                <span class="value val-gold" id="totalGold">0</span>
+            </div>
+        </div>
+        <div class="summary-item">
+            <span class="icon">🃏</span>
+            <div class="details">
+                <span class="label">Unidades Totais por Raridade</span>
+                <div class="units-breakdown">
+                    <span title="Raras"><strong class="val-rara">Raras:</strong> <span id="totalUnitsRara">0</span></span>
+                    <span>|</span>
+                    <span title="Épicas"><strong class="val-epica">Épicas:</strong> <span id="totalUnitsEpica">0</span></span>
+                    <span>|</span>
+                    <span title="Lendárias"><strong class="val-lendaria">Lendárias:</strong> <span id="totalUnitsLendaria">0</span></span>
+                </div>
+            </div>
+        </div>
+        <button class="btn-action" onclick="resetAll()">Zerar Tudo</button>
+    </div>
+
+    <div class="controls">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar carta por nome...">
+        </div>
+
+        <div class="filter-group">
+            <label for="filterRarity">Raridade:</label>
+            <select id="filterRarity">
+                <option value="all">Todas</option>
+                <option value="Rara">Rara</option>
+                <option value="Épica">Épica</option>
+                <option value="Lendária">Lendária</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Ações Rápidas:</label>
+            <button class="btn-action" onclick="setAllTarget(12)">Todas para Lv12</button>
+        </div>
+    </div>
+
+    <div class="grid" id="cardsGrid"></div>
+
+    <script>
+        // Níveis Mínimos por Raridade
+        const minLevels = {
+            'Rara': 1,
+            'Épica': 4,
+            'Lendária': 7
+        };
+
+        // Tabela de Custos (Gold e Unidades por nível individual de upgrade N->N+1)
+        const costTable = {
+            Rara: {
+                gold:  { 2: 50, 3: 100, 4: 150, 5: 300, 6: 500, 7: 800, 8: 1200, 9: 1600, 10: 2000, 11: 4000, 12: 7000 },
+                units: { 2: 2,  3: 5,   4: 10,  5: 25,  6: 50,  7: 100, 8: 200,  9: 350,  10: 600,  11: 900,  12: 1200 }
+            },
+            'Épica': {
+                gold:  { 2: 0, 3: 0, 4: 0, 5: 500, 6: 800, 7: 1200, 8: 1600, 9: 2000, 10: 4000, 11: 7000, 12: 11000 },
+                units: { 2: 0, 3: 0, 4: 0, 5: 2,   6: 4,   7: 8,    8: 14,   9: 25,   10: 40,   11: 60,   12: 75 }
+            },
+            'Lendária': {
+                gold:  { 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 2000, 9: 4000, 10: 7000, 11: 11000, 12: 16000 },
+                units: { 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 1,    9: 2,    10: 4,    11: 5,     12: 6 }
+            }
+        };
+
+        // Lista APENAS com as 65 cartas BASE na ordem exata do arquivo fornecido
+        const allCards = [{"id": 1, "name": "Princeso", "type": "Base", "rarity": "Lendária"}, {"id": 2, "name": "Abacadêmico", "type": "Base", "rarity": "Lendária"}, {"id": 3, "name": "Feno Rolante", "type": "Base", "rarity": "Lendária"}, {"id": 4, "name": "Mangostino Domador", "type": "Base", "rarity": "Lendária"}, {"id": 5, "name": "Sementito", "type": "Base", "rarity": "Lendária"}, {"id": 6, "name": "Cogubomba", "type": "Base", "rarity": "Rara"}, {"id": 7, "name": "Bebê Lichia", "type": "Base", "rarity": "Rara"}, {"id": 8, "name": "Rabaneta", "type": "Base", "rarity": "Rara"}, {"id": 9, "name": "Cocofrinho", "type": "Base", "rarity": "Rara"}, {"id": 10, "name": "Lancelga", "type": "Base", "rarity": "Rara"}, {"id": 11, "name": "Goiaba Trompetista", "type": "Base", "rarity": "Rara"}, {"id": 12, "name": "Madre Cereja", "type": "Base", "rarity": "Rara"}, {"id": 13, "name": "Abobolito", "type": "Base", "rarity": "Rara"}, {"id": 14, "name": "Verdevida", "type": "Base", "rarity": "Rara"}, {"id": 15, "name": "Brigada do Alho", "type": "Base", "rarity": "Rara"}, {"id": 16, "name": "Sentinela Espinhosa", "type": "Base", "rarity": "Rara"}, {"id": 17, "name": "Floratendente", "type": "Base", "rarity": "Rara"}, {"id": 18, "name": "Trombacaxinha", "type": "Base", "rarity": "Rara"}, {"id": 19, "name": "Crisântemo", "type": "Base", "rarity": "Rara"}, {"id": 20, "name": "Poderoso Milhão", "type": "Base", "rarity": "Rara"}, {"id": 21, "name": "Mercantata", "type": "Base", "rarity": "Rara"}, {"id": 22, "name": "Detetive Maçã", "type": "Base", "rarity": "Rara"}, {"id": 38, "name": "Astroloquídia", "type": "Base", "rarity": "Épica"}, {"id": 39, "name": "Come-tudo", "type": "Base", "rarity": "Épica"}, {"id": 41, "name": "Irmãos Laranja", "type": "Base", "rarity": "Épica"}, {"id": 42, "name": "Orquídea Fantasminha", "type": "Base", "rarity": "Épica"}, {"id": 43, "name": "Brócolis Presley", "type": "Base", "rarity": "Épica"}, {"id": 45, "name": "Abóbora sem Cabeça", "type": "Base", "rarity": "Épica"}, {"id": 46, "name": "Uvartender", "type": "Base", "rarity": "Épica"}, {"id": 48, "name": "Manga Ninja", "type": "Base", "rarity": "Épica"}, {"id": 49, "name": "Samuraimelo", "type": "Base", "rarity": "Épica"}, {"id": 50, "name": "Dente-de-Leão", "type": "Base", "rarity": "Rara"}, {"id": 52, "name": "Fiscal Pimentel", "type": "Base", "rarity": "Rara"}, {"id": 54, "name": "Limazito", "type": "Base", "rarity": "Rara"}, {"id": 56, "name": "Romãtirador", "type": "Base", "rarity": "Rara"}, {"id": 57, "name": "Prof. Nozes", "type": "Base", "rarity": "Rara"}, {"id": 58, "name": "Inspetor Lanterna", "type": "Base", "rarity": "Rara"}, {"id": 59, "name": "Amendoscudo", "type": "Base", "rarity": "Rara"}, {"id": 61, "name": "Cenoura Corretora", "type": "Base", "rarity": "Rara"}, {"id": 62, "name": "Bananarangue", "type": "Base", "rarity": "Rara"}, {"id": 63, "name": "Dragão Acumulador", "type": "Base", "rarity": "Rara"}, {"id": 65, "name": "Morcego-de-azevinho", "type": "Base", "rarity": "Rara"}, {"id": 66, "name": "Cebardo", "type": "Base", "rarity": "Rara"}, {"id": 67, "name": "Melão Matemático", "type": "Base", "rarity": "Rara"}, {"id": 68, "name": "Dr. Repolho", "type": "Base", "rarity": "Rara"}, {"id": 71, "name": "Padeiro Comilão", "type": "Base", "rarity": "Épica"}, {"id": 72, "name": "Mirtigélida", "type": "Base", "rarity": "Épica"}, {"id": 74, "name": "Ciclone Folhoso", "type": "Base", "rarity": "Épica"}, {"id": 75, "name": "Chefe Gengíbrio", "type": "Base", "rarity": "Épica"}, {"id": 76, "name": "Bumbo Poró", "type": "Base", "rarity": "Rara"}, {"id": 78, "name": "Cenoura Bomba", "type": "Base", "rarity": "Rara"}, {"id": 80, "name": "Sir Rosa", "type": "Base", "rarity": "Rara"}, {"id": 83, "name": "Flormerciante", "type": "Base", "rarity": "Rara"}, {"id": 84, "name": "Melancia Fortona", "type": "Base", "rarity": "Épica"}, {"id": 85, "name": "Tobate", "type": "Base", "rarity": "Lendária"}, {"id": 86, "name": "Xamandragora", "type": "Base", "rarity": "Lendária"}, {"id": 87, "name": "Árvore da Luz", "type": "Base", "rarity": "Lendária"}, {"id": 88, "name": "Morte Rosácea", "type": "Base", "rarity": "Lendária"}, {"id": 89, "name": "Cajumístico", "type": "Base", "rarity": "Lendária"}, {"id": 91, "name": "Xamaniza", "type": "Base", "rarity": "Lendária"}, {"id": 92, "name": "Beringênio", "type": "Base", "rarity": "Lendária"}, {"id": 93, "name": "Valquíris", "type": "Base", "rarity": "Lendária"}, {"id": 95, "name": "Frade Flor", "type": "Base", "rarity": "Épica"}, {"id": 97, "name": "Alquimelo", "type": "Base", "rarity": "Épica"}, {"id": 99, "name": "Madame Tulipa", "type": "Base", "rarity": "Épica"}, {"id": 101, "name": "Joe Magnata", "type": "Base", "rarity": "Épica"}, {"id": 102, "name": "Solário", "type": "Base", "rarity": "Épica"}, {"id": 104, "name": "Espelho Perverso", "type": "Base", "rarity": "Épica"}, {"id": 105, "name": "Bolota Bandido", "type": "Base", "rarity": "Épica"}];
+
+        // Estado das cartas (nível atual e nível alvo inicializado no mínimo da raridade)
+        const userState = {};
+        allCards.forEach(card => {
+            const minLv = minLevels[card.rarity];
+            userState[card.id] = { currentLv: minLv, targetLv: minLv };
+        });
+
+        // Função de cálculo de custo do nível A para o nível B
+        function calculateCardCost(rarity, currentLv, targetLv) {
+            let gold = 0;
+            let units = 0;
+            if (targetLv <= currentLv) return { gold, units };
+
+            const rData = costTable[rarity];
+            for (let lvl = currentLv + 1; lvl <= targetLv; lvl++) {
+                gold += rData.gold[lvl] || 0;
+                units += rData.units[lvl] || 0;
+            }
+            return { gold, units };
+        }
+
+        function updateTotals() {
+            let totalGold = 0;
+            let unitsByRarity = {
+                'Rara': 0,
+                'Épica': 0,
+                'Lendária': 0
+            };
+
+            allCards.forEach(card => {
+                const state = userState[card.id];
+                const res = calculateCardCost(card.rarity, state.currentLv, state.targetLv);
+                totalGold += res.gold;
+                unitsByRarity[card.rarity] += res.units;
+
+                // Atualizar visual da carta se ela estiver renderizada
+                const cardEl = document.getElementById(`card-${card.id}`);
+                if (cardEl) {
+                    document.getElementById(`curr-lv-${card.id}`).innerText = state.currentLv;
+                    document.getElementById(`targ-lv-${card.id}`).innerText = state.targetLv;
+                    document.getElementById(`res-gold-${card.id}`).innerText = res.gold.toLocaleString('pt-BR');
+                    document.getElementById(`res-units-${card.id}`).innerText = res.units.toLocaleString('pt-BR');
+                }
+            });
+
+            document.getElementById('totalGold').innerText = totalGold.toLocaleString('pt-BR');
+            document.getElementById('totalUnitsRara').innerText = unitsByRarity['Rara'].toLocaleString('pt-BR');
+            document.getElementById('totalUnitsEpica').innerText = unitsByRarity['Épica'].toLocaleString('pt-BR');
+            document.getElementById('totalUnitsLendaria').innerText = unitsByRarity['Lendária'].toLocaleString('pt-BR');
+        }
+
+        function changeLevel(cardId, type, delta) {
+            const card = allCards.find(c => c.id === cardId);
+            if (!card) return;
+
+            const minLv = minLevels[card.rarity];
+            const state = userState[cardId];
+
+            if (type === 'current') {
+                let newLv = state.currentLv + delta;
+                if (newLv < minLv) newLv = minLv;
+                if (newLv > 12) newLv = 12;
+                state.currentLv = newLv;
+                if (state.targetLv < state.currentLv) {
+                    state.targetLv = state.currentLv;
+                }
+            } else if (type === 'target') {
+                let newLv = state.targetLv + delta;
+                if (newLv < state.currentLv) newLv = state.currentLv;
+                if (newLv > 12) newLv = 12;
+                state.targetLv = newLv;
+            }
+            updateTotals();
+        }
+
+        function resetAll() {
+            allCards.forEach(card => {
+                const minLv = minLevels[card.rarity];
+                userState[card.id] = { currentLv: minLv, targetLv: minLv };
+            });
+            updateTotals();
+        }
+
+        function setAllTarget(targetVal) {
+            allCards.forEach(card => {
+                userState[card.id].targetLv = targetVal;
+                if (userState[card.id].currentLv > targetVal) {
+                    userState[card.id].currentLv = targetVal;
+                }
+            });
+            updateTotals();
+        }
+
+        const cardsGrid = document.getElementById('cardsGrid');
+        const searchInput = document.getElementById('searchInput');
+        const filterRarity = document.getElementById('filterRarity');
+
+        function renderGrid() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const rarityVal = filterRarity.value;
+
+            cardsGrid.innerHTML = '';
+
+            allCards.forEach(card => {
+                const matchesSearch = card.name.toLowerCase().includes(searchTerm);
+                const matchesRarity = rarityVal === 'all' || card.rarity === rarityVal;
+
+                if (matchesSearch && matchesRarity) {
+                    const rarityClass = `rarity-${card.rarity.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')}`;
+                    const state = userState[card.id];
+                    const res = calculateCardCost(card.rarity, state.currentLv, state.targetLv);
+
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'card';
+                    cardEl.id = `card-${card.id}`;
+
+                    cardEl.innerHTML = `
+                        <div class="card-header">
+                            <div class="card-title-box">
+                                <span class="card-id">#${card.id}</span>
+                                <span class="card-title">${card.name}</span>
+                            </div>
+                            <div class="badges">
+                                <span class="badge badge-type">Base</span>
+                                <span class="badge badge-rarity ${rarityClass}">${card.rarity}</span>
+                            </div>
+                        </div>
+
+                        <div class="level-selectors">
+                            <div class="level-control-box">
+                                <label>Lv Atual</label>
+                                <div class="stepper">
+                                    <button onclick="changeLevel(${card.id}, 'current', -1)">-</button>
+                                    <span id="curr-lv-${card.id}">${state.currentLv}</span>
+                                    <button onclick="changeLevel(${card.id}, 'current', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="level-control-box">
+                                <label>Lv Alvo</label>
+                                <div class="stepper">
+                                    <button onclick="changeLevel(${card.id}, 'target', -1)">-</button>
+                                    <span id="targ-lv-${card.id}">${state.targetLv}</span>
+                                    <button onclick="changeLevel(${card.id}, 'target', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-result">
+                            <div class="res-item">
+                                <span class="res-label">Ouro</span>
+                                <span class="res-value val-gold" id="res-gold-${card.id}">${res.gold.toLocaleString('pt-BR')}</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Unidades</span>
+                                <span class="res-value val-units" id="res-units-${card.id}">${res.units.toLocaleString('pt-BR')}</span>
+                            </div>
+                        </div>
+                    `;
+                    cardsGrid.appendChild(cardEl);
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', renderGrid);
+        filterRarity.addEventListener('change', renderGrid);
+
+        renderGrid();
+        updateTotals();
+    </script>
+</body>
+</html>
