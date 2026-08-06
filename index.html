@@ -14,10 +14,14 @@
             --accent-color: #00e676;
             --gold-color: #ffd700;
             --units-color: #ff5722;
+            --owned-color: #00bcd4;
             --rarity-rara: #42a5f5;
             --rarity-epica: #ab47bc;
             --rarity-lendaria: #ffa726;
             --tag-base: #424242;
+            --cost-3: #29b6f6;
+            --cost-5: #ab47bc;
+            --cost-8: #ffa726;
         }
 
         * {
@@ -122,7 +126,7 @@
         }
 
         .search-box {
-            flex: 1 1 250px;
+            flex: 1 1 220px;
         }
 
         .search-box input {
@@ -241,6 +245,11 @@
             text-transform: uppercase;
         }
 
+        .badge-cost { color: #000; }
+        .badge-cost-3 { background-color: var(--cost-3); }
+        .badge-cost-5 { background-color: var(--cost-5); color: #fff; }
+        .badge-cost-8 { background-color: var(--cost-8); color: #000; }
+
         .badge-type {
             background: var(--tag-base);
             color: #fff;
@@ -291,9 +300,9 @@
             background: #2c2c34;
             color: #fff;
             border: none;
-            width: 28px;
-            height: 28px;
-            font-size: 1rem;
+            width: 32px;
+            height: 32px;
+            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
             user-select: none;
@@ -310,17 +319,87 @@
         }
 
         .stepper span {
-            width: 32px;
+            width: 36px;
             text-align: center;
             font-size: 0.95rem;
             font-weight: bold;
             color: #fff;
         }
 
+        /* Owned Units Input Box & Stepper */
+        .owned-input-box {
+            background: #16161a;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .owned-input-box label {
+            font-size: 0.8rem;
+            color: var(--owned-color);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .owned-stepper {
+            display: flex;
+            align-items: center;
+            background: #232328;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .owned-stepper button {
+            background: #2c2c34;
+            color: var(--owned-color);
+            border: none;
+            width: 34px;
+            height: 34px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .owned-stepper button:hover {
+            background: var(--owned-color);
+            color: #000;
+        }
+
+        .owned-stepper button:active {
+            transform: scale(0.95);
+        }
+
+        .owned-stepper input {
+            width: 65px;
+            height: 34px;
+            border: none;
+            background: transparent;
+            color: #fff;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        /* Ocultar setas padrão de input number */
+        .owned-stepper input::-webkit-outer-spin-button,
+        .owned-stepper input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .owned-stepper input[type=number] {
+            -moz-appearance: textfield;
+        }
+
         .card-result {
             display: flex;
             justify-content: space-around;
-            padding: 8px;
+            padding: 10px 8px;
             background: #141417;
             border-radius: 6px;
             font-size: 0.85rem;
@@ -348,7 +427,7 @@
 
     <header>
         <h1>Calculadora de Evolução de Cartas</h1>
-        <p>Plants on Fire — APENAS Cartas Base (65 Entradas)</p>
+        <p>Plants on Fire — Cartas Base</p>
     </header>
 
     <div class="summary-bar">
@@ -362,7 +441,7 @@
         <div class="summary-item">
             <span class="icon">🃏</span>
             <div class="details">
-                <span class="label">Unidades Totais por Raridade</span>
+                <span class="label">Unidades Faltantes por Raridade</span>
                 <div class="units-breakdown">
                     <span title="Raras"><strong class="val-rara">Raras:</strong> <span id="totalUnitsRara">0</span></span>
                     <span>|</span>
@@ -378,6 +457,16 @@
     <div class="controls">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="Buscar carta por nome...">
+        </div>
+
+        <div class="filter-group">
+            <label for="filterCost">Custo:</label>
+            <select id="filterCost">
+                <option value="all">Todos</option>
+                <option value="3">Custo 3</option>
+                <option value="5">Custo 5</option>
+                <option value="8">Custo 8</option>
+            </select>
         </div>
 
         <div class="filter-group">
@@ -422,28 +511,34 @@
             }
         };
 
-        // Lista APENAS com as 65 cartas BASE na ordem exata do arquivo fornecido
-        const allCards = [{"id": 1, "name": "Princeso", "type": "Base", "rarity": "Lendária"}, {"id": 2, "name": "Abacadêmico", "type": "Base", "rarity": "Lendária"}, {"id": 3, "name": "Feno Rolante", "type": "Base", "rarity": "Lendária"}, {"id": 4, "name": "Mangostino Domador", "type": "Base", "rarity": "Lendária"}, {"id": 5, "name": "Sementito", "type": "Base", "rarity": "Lendária"}, {"id": 6, "name": "Cogubomba", "type": "Base", "rarity": "Rara"}, {"id": 7, "name": "Bebê Lichia", "type": "Base", "rarity": "Rara"}, {"id": 8, "name": "Rabaneta", "type": "Base", "rarity": "Rara"}, {"id": 9, "name": "Cocofrinho", "type": "Base", "rarity": "Rara"}, {"id": 10, "name": "Lancelga", "type": "Base", "rarity": "Rara"}, {"id": 11, "name": "Goiaba Trompetista", "type": "Base", "rarity": "Rara"}, {"id": 12, "name": "Madre Cereja", "type": "Base", "rarity": "Rara"}, {"id": 13, "name": "Abobolito", "type": "Base", "rarity": "Rara"}, {"id": 14, "name": "Verdevida", "type": "Base", "rarity": "Rara"}, {"id": 15, "name": "Brigada do Alho", "type": "Base", "rarity": "Rara"}, {"id": 16, "name": "Sentinela Espinhosa", "type": "Base", "rarity": "Rara"}, {"id": 17, "name": "Floratendente", "type": "Base", "rarity": "Rara"}, {"id": 18, "name": "Trombacaxinha", "type": "Base", "rarity": "Rara"}, {"id": 19, "name": "Crisântemo", "type": "Base", "rarity": "Rara"}, {"id": 20, "name": "Poderoso Milhão", "type": "Base", "rarity": "Rara"}, {"id": 21, "name": "Mercantata", "type": "Base", "rarity": "Rara"}, {"id": 22, "name": "Detetive Maçã", "type": "Base", "rarity": "Rara"}, {"id": 38, "name": "Astroloquídia", "type": "Base", "rarity": "Épica"}, {"id": 39, "name": "Come-tudo", "type": "Base", "rarity": "Épica"}, {"id": 41, "name": "Irmãos Laranja", "type": "Base", "rarity": "Épica"}, {"id": 42, "name": "Orquídea Fantasminha", "type": "Base", "rarity": "Épica"}, {"id": 43, "name": "Brócolis Presley", "type": "Base", "rarity": "Épica"}, {"id": 45, "name": "Abóbora sem Cabeça", "type": "Base", "rarity": "Épica"}, {"id": 46, "name": "Uvartender", "type": "Base", "rarity": "Épica"}, {"id": 48, "name": "Manga Ninja", "type": "Base", "rarity": "Épica"}, {"id": 49, "name": "Samuraimelo", "type": "Base", "rarity": "Épica"}, {"id": 50, "name": "Dente-de-Leão", "type": "Base", "rarity": "Rara"}, {"id": 52, "name": "Fiscal Pimentel", "type": "Base", "rarity": "Rara"}, {"id": 54, "name": "Limazito", "type": "Base", "rarity": "Rara"}, {"id": 56, "name": "Romãtirador", "type": "Base", "rarity": "Rara"}, {"id": 57, "name": "Prof. Nozes", "type": "Base", "rarity": "Rara"}, {"id": 58, "name": "Inspetor Lanterna", "type": "Base", "rarity": "Rara"}, {"id": 59, "name": "Amendoscudo", "type": "Base", "rarity": "Rara"}, {"id": 61, "name": "Cenoura Corretora", "type": "Base", "rarity": "Rara"}, {"id": 62, "name": "Bananarangue", "type": "Base", "rarity": "Rara"}, {"id": 63, "name": "Dragão Acumulador", "type": "Base", "rarity": "Rara"}, {"id": 65, "name": "Morcego-de-azevinho", "type": "Base", "rarity": "Rara"}, {"id": 66, "name": "Cebardo", "type": "Base", "rarity": "Rara"}, {"id": 67, "name": "Melão Matemático", "type": "Base", "rarity": "Rara"}, {"id": 68, "name": "Dr. Repolho", "type": "Base", "rarity": "Rara"}, {"id": 71, "name": "Padeiro Comilão", "type": "Base", "rarity": "Épica"}, {"id": 72, "name": "Mirtigélida", "type": "Base", "rarity": "Épica"}, {"id": 74, "name": "Ciclone Folhoso", "type": "Base", "rarity": "Épica"}, {"id": 75, "name": "Chefe Gengíbrio", "type": "Base", "rarity": "Épica"}, {"id": 76, "name": "Bumbo Poró", "type": "Base", "rarity": "Rara"}, {"id": 78, "name": "Cenoura Bomba", "type": "Base", "rarity": "Rara"}, {"id": 80, "name": "Sir Rosa", "type": "Base", "rarity": "Rara"}, {"id": 83, "name": "Flormerciante", "type": "Base", "rarity": "Rara"}, {"id": 84, "name": "Melancia Fortona", "type": "Base", "rarity": "Épica"}, {"id": 85, "name": "Tobate", "type": "Base", "rarity": "Lendária"}, {"id": 86, "name": "Xamandragora", "type": "Base", "rarity": "Lendária"}, {"id": 87, "name": "Árvore da Luz", "type": "Base", "rarity": "Lendária"}, {"id": 88, "name": "Morte Rosácea", "type": "Base", "rarity": "Lendária"}, {"id": 89, "name": "Cajumístico", "type": "Base", "rarity": "Lendária"}, {"id": 91, "name": "Xamaniza", "type": "Base", "rarity": "Lendária"}, {"id": 92, "name": "Beringênio", "type": "Base", "rarity": "Lendária"}, {"id": 93, "name": "Valquíris", "type": "Base", "rarity": "Lendária"}, {"id": 95, "name": "Frade Flor", "type": "Base", "rarity": "Épica"}, {"id": 97, "name": "Alquimelo", "type": "Base", "rarity": "Épica"}, {"id": 99, "name": "Madame Tulipa", "type": "Base", "rarity": "Épica"}, {"id": 101, "name": "Joe Magnata", "type": "Base", "rarity": "Épica"}, {"id": 102, "name": "Solário", "type": "Base", "rarity": "Épica"}, {"id": 104, "name": "Espelho Perverso", "type": "Base", "rarity": "Épica"}, {"id": 105, "name": "Bolota Bandido", "type": "Base", "rarity": "Épica"}];
+        // Lista APENAS com as cartas BASE
+        const allCards = [{"id": 1, "name": "Princeso", "cost": 3, "type": "Base", "rarity": "Lendária"}, {"id": 2, "name": "Abacadêmico", "cost": 3, "type": "Base", "rarity": "Lendária"}, {"id": 3, "name": "Feno Rolante", "cost": 3, "type": "Base", "rarity": "Lendária"}, {"id": 4, "name": "Mangostino Domador", "cost": 3, "type": "Base", "rarity": "Lendária"}, {"id": 5, "name": "Sementito", "cost": 3, "type": "Base", "rarity": "Lendária"}, {"id": 6, "name": "Cogubomba", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 7, "name": "Bebê Lichia", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 8, "name": "Rabaneta", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 9, "name": "Cocofrinho", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 10, "name": "Lancelga", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 11, "name": "Goiaba Trompetista", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 12, "name": "Madre Cereja", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 13, "name": "Abobolito", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 14, "name": "Verdevida", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 15, "name": "Brigada do Alho", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 16, "name": "Sentinela Espinhosa", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 17, "name": "Floratendente", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 18, "name": "Trombacaxinha", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 19, "name": "Crisântemo", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 20, "name": "Poderoso Milhão", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 21, "name": "Mercantata", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 22, "name": "Detetive Maçã", "cost": 3, "type": "Base", "rarity": "Rara"}, {"id": 38, "name": "Astroloquídia", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 39, "name": "Come-tudo", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 41, "name": "Irmãos Laranja", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 42, "name": "Orquídea Fantasminha", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 43, "name": "Brócolis Presley", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 45, "name": "Abóbora sem Cabeça", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 46, "name": "Uvartender", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 48, "name": "Manga Ninja", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 49, "name": "Samuraimelo", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 50, "name": "Dente-de-Leão", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 52, "name": "Fiscal Pimentel", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 54, "name": "Limazito", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 56, "name": "Romãtirador", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 57, "name": "Prof. Nozes", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 58, "name": "Inspetor Lanterna", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 59, "name": "Amendoscudo", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 61, "name": "Cenoura Corretora", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 62, "name": "Bananarangue", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 63, "name": "Dragão Acumulador", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 65, "name": "Morcego-de-azevinho", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 66, "name": "Cebardo", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 67, "name": "Melão Matemático", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 68, "name": "Dr. Repolho", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 71, "name": "Padeiro Comilão", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 72, "name": "Mirtigélida", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 74, "name": "Ciclone Folhoso", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 75, "name": "Chefe Gengíbrio", "cost": 5, "type": "Base", "rarity": "Épica"}, {"id": 76, "name": "Bumbo Poró", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 78, "name": "Cenoura Bomba", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 80, "name": "Sir Rosa", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 83, "name": "Flormerciante", "cost": 5, "type": "Base", "rarity": "Rara"}, {"id": 84, "name": "Melancia Fortona", "cost": 8, "type": "Base", "rarity": "Épica"}, {"id": 85, "name": "Tobate", "cost": 8, "type": "Base", "rarity": "Lendária"}, {"id": 86, "name": "Xamandragora", "cost": 8, "type": "Base", "rarity": "Lendária"}, {"id": 87, "name": "Árvore da Luz", "cost": 8, "type": "Base", "rarity": "Lendária"}, {"id": 88, "name": "Morte Rosácea", "cost": 8, "type": "Base", "rarity": "Lendária"}, {"id": 89, "name": "Cajumístico", "cost": 8, "type": "Base", "rarity": "Lendária"}, {"id": 91, "name": "Xamaniza", "cost": 8, "type": "Base", "rarity": "Lendária"}, {"id": 92, "name": "Beringênio", "cost": 8, "type": "Base", "rarity": "Lendária"}, {"id": 93, "name": "Valquíris", "cost": 8, "type": "Base", "rarity": "Lendária"}, {"id": 95, "name": "Frade Flor", "cost": 8, "type": "Base", "rarity": "Épica"}, {"id": 97, "name": "Alquimelo", "cost": 8, "type": "Base", "rarity": "Épica"}, {"id": 99, "name": "Madame Tulipa", "cost": 8, "type": "Base", "rarity": "Épica"}, {"id": 101, "name": "Joe Magnata", "cost": 8, "type": "Base", "rarity": "Épica"}, {"id": 102, "name": "Solário", "cost": 8, "type": "Base", "rarity": "Épica"}, {"id": 104, "name": "Espelho Perverso", "cost": 8, "type": "Base", "rarity": "Épica"}, {"id": 105, "name": "Bolota Bandido", "cost": 8, "type": "Base", "rarity": "Épica"}];
 
-        // Estado das cartas (nível atual e nível alvo inicializado no mínimo da raridade)
+        // Estado do usuário
         const userState = {};
+
         allCards.forEach(card => {
             const minLv = minLevels[card.rarity];
-            userState[card.id] = { currentLv: minLv, targetLv: minLv };
+            userState[card.id] = { 
+                currentLv: minLv, 
+                targetLv: minLv, 
+                ownedUnits: 0 
+            };
         });
 
-        // Função de cálculo de custo do nível A para o nível B
-        function calculateCardCost(rarity, currentLv, targetLv) {
+        function calculateCardCost(rarity, currentLv, targetLv, ownedUnits) {
             let gold = 0;
-            let units = 0;
-            if (targetLv <= currentLv) return { gold, units };
+            let totalUnitsNeeded = 0;
+            if (targetLv <= currentLv) return { gold, remainingUnits: 0, totalUnitsNeeded: 0 };
 
             const rData = costTable[rarity];
             for (let lvl = currentLv + 1; lvl <= targetLv; lvl++) {
                 gold += rData.gold[lvl] || 0;
-                units += rData.units[lvl] || 0;
+                totalUnitsNeeded += rData.units[lvl] || 0;
             }
-            return { gold, units };
+
+            const remainingUnits = Math.max(0, totalUnitsNeeded - ownedUnits);
+            return { gold, remainingUnits, totalUnitsNeeded };
         }
 
         function updateTotals() {
@@ -456,17 +551,16 @@
 
             allCards.forEach(card => {
                 const state = userState[card.id];
-                const res = calculateCardCost(card.rarity, state.currentLv, state.targetLv);
+                const res = calculateCardCost(card.rarity, state.currentLv, state.targetLv, state.ownedUnits);
                 totalGold += res.gold;
-                unitsByRarity[card.rarity] += res.units;
+                unitsByRarity[card.rarity] += res.remainingUnits;
 
-                // Atualizar visual da carta se ela estiver renderizada
                 const cardEl = document.getElementById(`card-${card.id}`);
                 if (cardEl) {
                     document.getElementById(`curr-lv-${card.id}`).innerText = state.currentLv;
                     document.getElementById(`targ-lv-${card.id}`).innerText = state.targetLv;
                     document.getElementById(`res-gold-${card.id}`).innerText = res.gold.toLocaleString('pt-BR');
-                    document.getElementById(`res-units-${card.id}`).innerText = res.units.toLocaleString('pt-BR');
+                    document.getElementById(`res-units-${card.id}`).innerText = res.remainingUnits.toLocaleString('pt-BR');
                 }
             });
 
@@ -500,11 +594,35 @@
             updateTotals();
         }
 
+        function changeOwnedUnits(cardId, delta) {
+            const state = userState[cardId];
+            let newVal = state.ownedUnits + delta;
+            if (newVal < 0) newVal = 0;
+            state.ownedUnits = newVal;
+
+            const inputEl = document.getElementById(`owned-input-${cardId}`);
+            if (inputEl) {
+                inputEl.value = state.ownedUnits === 0 ? '' : state.ownedUnits;
+            }
+            updateTotals();
+        }
+
+        function setOwnedUnitsInput(cardId, rawValue) {
+            if (rawValue === '' || rawValue === null) {
+                userState[cardId].ownedUnits = 0;
+            } else {
+                const val = parseInt(rawValue, 10);
+                userState[cardId].ownedUnits = isNaN(val) || val < 0 ? 0 : val;
+            }
+            updateTotals();
+        }
+
         function resetAll() {
             allCards.forEach(card => {
                 const minLv = minLevels[card.rarity];
-                userState[card.id] = { currentLv: minLv, targetLv: minLv };
+                userState[card.id] = { currentLv: minLv, targetLv: minLv, ownedUnits: 0 };
             });
+            renderGrid();
             updateTotals();
         }
 
@@ -520,22 +638,26 @@
 
         const cardsGrid = document.getElementById('cardsGrid');
         const searchInput = document.getElementById('searchInput');
+        const filterCost = document.getElementById('filterCost');
         const filterRarity = document.getElementById('filterRarity');
 
         function renderGrid() {
             const searchTerm = searchInput.value.toLowerCase();
+            const costVal = filterCost.value;
             const rarityVal = filterRarity.value;
 
             cardsGrid.innerHTML = '';
 
             allCards.forEach(card => {
                 const matchesSearch = card.name.toLowerCase().includes(searchTerm);
+                const matchesCost = costVal === 'all' || card.cost.toString() === costVal;
                 const matchesRarity = rarityVal === 'all' || card.rarity === rarityVal;
 
-                if (matchesSearch && matchesRarity) {
+                if (matchesSearch && matchesCost && matchesRarity) {
                     const rarityClass = `rarity-${card.rarity.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')}`;
                     const state = userState[card.id];
-                    const res = calculateCardCost(card.rarity, state.currentLv, state.targetLv);
+                    const res = calculateCardCost(card.rarity, state.currentLv, state.targetLv, state.ownedUnits);
+                    const inputValue = state.ownedUnits === 0 ? '' : state.ownedUnits;
 
                     const cardEl = document.createElement('div');
                     cardEl.className = 'card';
@@ -548,6 +670,7 @@
                                 <span class="card-title">${card.name}</span>
                             </div>
                             <div class="badges">
+                                <span class="badge badge-cost badge-cost-${card.cost}">⚡ ${card.cost}</span>
                                 <span class="badge badge-type">Base</span>
                                 <span class="badge badge-rarity ${rarityClass}">${card.rarity}</span>
                             </div>
@@ -572,14 +695,23 @@
                             </div>
                         </div>
 
+                        <div class="owned-input-box">
+                            <label>Unidades Adquiridas</label>
+                            <div class="owned-stepper">
+                                <button onclick="changeOwnedUnits(${card.id}, -1)">-</button>
+                                <input type="number" id="owned-input-${card.id}" min="0" placeholder="0" value="${inputValue}" oninput="setOwnedUnitsInput(${card.id}, this.value)">
+                                <button onclick="changeOwnedUnits(${card.id}, 1)">+</button>
+                            </div>
+                        </div>
+
                         <div class="card-result">
                             <div class="res-item">
                                 <span class="res-label">Ouro</span>
                                 <span class="res-value val-gold" id="res-gold-${card.id}">${res.gold.toLocaleString('pt-BR')}</span>
                             </div>
                             <div class="res-item">
-                                <span class="res-label">Unidades</span>
-                                <span class="res-value val-units" id="res-units-${card.id}">${res.units.toLocaleString('pt-BR')}</span>
+                                <span class="res-label">Unid. Faltantes</span>
+                                <span class="res-value val-units" id="res-units-${card.id}">${res.remainingUnits.toLocaleString('pt-BR')}</span>
                             </div>
                         </div>
                     `;
@@ -589,6 +721,7 @@
         }
 
         searchInput.addEventListener('input', renderGrid);
+        filterCost.addEventListener('change', renderGrid);
         filterRarity.addEventListener('change', renderGrid);
 
         renderGrid();
